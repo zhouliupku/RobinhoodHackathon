@@ -1,7 +1,8 @@
-import { FormControl, MenuItem, Select } from '@mui/material';
+import { Card, CardContent, FormControl, MenuItem, Select } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import InfoBox from './components/InfoBox';
+import Table from './components/Table';
 import { sortData } from './utils';
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
   const [countryInfo, setCountryInfo] = useState({});
   const [countries, setCountries] = useState([]);
   const [country, setInputCountry] = useState("worldwide");
+  const [tableData, setTableData] = useState([]);
 
   // get world level stats
   useEffect(() => {
@@ -21,7 +23,7 @@ function App() {
 
   useEffect(() => {
     const getCountriesData = async () => {
-      fetch("")
+      fetch("https://disease.sh/v3/covid-19/countries")
       .then((response) => response.json())
       .then((data) => {
         const countries = data.map((country) => ({
@@ -30,6 +32,7 @@ function App() {
         }))
         let sortedData = sortData(data);
         setCountries(countries);
+        setTableData(sortedData);
       })
     }
     getCountriesData();
@@ -70,6 +73,15 @@ function App() {
         </div>
 
       </div>
+      <Card className="app__right">
+        <CardContent>
+          <div className="app__information">
+            <h3>Live Cases by Country</h3>
+            <Table countries={tableData} />
+              
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
