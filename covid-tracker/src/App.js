@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 import InfoBox from './components/InfoBox';
 import Table from './components/Table';
-import { sortData } from './utils';
+import { sortData, prettyPrintStat } from './utils';
 
 function App() {
 
@@ -11,6 +11,8 @@ function App() {
   const [countries, setCountries] = useState([]);
   const [country, setInputCountry] = useState("worldwide");
   const [tableData, setTableData] = useState([]);
+  const [casesType, setCasesType] = useState("cases");
+  
 
   // get world level stats
   useEffect(() => {
@@ -38,14 +40,29 @@ function App() {
     getCountriesData();
   }, [])
 
+  const onCountryChange = async (e) => {
+    const countryCode = e.target.value;
+
+    const url =
+      countryCode === "worldwide"
+        ? "https://disease.sh/v3/covid-19/all"
+        : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
+    await fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        setInputCountry(countryCode);
+        setCountryInfo(data);
+      });
+  };
+
   return (
     <div className="app">
       <div className="app__left">
         <div className="app__header">
-          <h1>COVID-19 Tracker</h1>
+          <h1>Today Covid-19</h1>
           <FormControl className="app__dropdown">
-            <Select variant="outlined" value={country}>
-              <MenuItem value="wordwide">
+            <Select variant="outlined" value={country} onChange={onCountryChange}>
+              <MenuItem value="worldwide">
                 Worldwide
               </MenuItem>
               {countries.map((country) => (
@@ -57,28 +74,41 @@ function App() {
         </div>
 
         <div className="app__stats">
-          <InfoBox  title="Covid-19 Cases"
-            cases = {countryInfo.todayCases}
+          <InfoBox  
+            onClick={(e) => setCasesType("cases")}
+            title="Covid-19 Cases"
+            active={casesType === "cases"}
+            isRed
+            cases = {prettyPrintStat(countryInfo.todayCases)}
             total = {countryInfo.cases}
             />
-          <InfoBox  title="Recoverd"
-            cases = {countryInfo.todayRecovered}
+          <InfoBox  
+            onClick={(e) => setCasesType("recovered")}
+            title="Recoverd"
+            active={casesType === "recovered"}
+            isRed
+            cases = {prettyPrintStat(countryInfo.todayRecovered)}
             total = {countryInfo.recovered}
             />
-          <InfoBox  title="Deaths"
-            cases = {countryInfo.todayDeaths}
+          <InfoBox  
+            onClick={(e) => setCasesType("deaths")}
+            title="Deaths"
+            active={casesType === "deaths"}
+            isRed
+            cases = {prettyPrintStat(countryInfo.todayDeaths)}
             total = {countryInfo.deaths}
             />
           
         </div>
+        
 
       </div>
       <Card className="app__right">
         <CardContent>
           <div className="app__information">
-            <h3>Live Cases by Country</h3>
+            <h3>Cases by Country</h3>
             <Table countries={tableData} />
-              
+            
           </div>
         </CardContent>
       </Card>
